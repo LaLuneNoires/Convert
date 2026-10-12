@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FLAC转MP3</title>
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 16px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.container {
+    max-width: 480px;
+    width: 100%;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 24px 20px;
+    margin-top: 20px;
+}
+
+h1 {
+    font-size: 1.4rem;
+    text-align: center;
+    margin: 0 0 8px 0;
+    color: #1a1a2e;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.file-select-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    position: relative;
+    background: #fafbfc;
+}
+
+.file-select-area:active {
+    background: #f1f5f9;
+}
+
+.file-select-area.has-file {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.file-select-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    font-size: 100px;
+}
+
+.file-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.file-label {
+    font-size: 1rem;
+    color: #3b82f6;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.file-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.file-name {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    word-break: break-all;
+    font-weight: 500;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 12px;
+    font-family: inherit;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.btn-primary:not(:disabled):active {
+    background: #2563eb;
+}
+
+.btn-success {
+    background: #10b981;
+    color: #fff;
+}
+
+.btn-success:not(:disabled):active {
+    background: #059669;
+}
+
+.status {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: none;
+    word-break: break-word;
+}
+
+.status.show {
+    display: block;
+}
+
+.status.info {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.status.success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.status.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    margin-top: 12px;
+    overflow: hidden;
+    display: none;
+}
+
+.progress-bar.show {
+    display: block;
+}
+
+.progress-inner {
+    height: 100%;
+    width: 0%;
+    background: #3b82f6;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.bitrate-select {
+    margin-top: 12px;
+}
+
+.bitrate-select label {
+    font-size: 0.85rem;
+    color: #475569;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.bitrate-select select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+    color: #1e293b;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.note {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.hide { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🎵 FLAC 转 MP3</h1>
+    <p class="subtitle">
+        纯浏览器本地转换 · 不上传文件<br>
+        支持安卓 / iPhone 文件管理器
+    </p>
+
+    <div class="file-select-area" id="fileArea">
+        <span class="file-icon">📁</span>
+        <div class="file-label">点击选择 FLAC 文件</div>
+        <div class="file-hint">支持 .flac 格式</div>
+        <div class="file-name hide" id="fileName"></div>
+        <input type="file" id="fileInput" accept=".flac,audio/flac,audio/x-flac">
+    </div>
+
+    <div class="bitrate-select">
+        <label for="bitrateSelect">输出 MP3 音质</label>
+        <select id="bitrateSelect">
+            <option value="320" selected>320 kbps（最佳音质）</option>
+            <option value="256">256 kbps（高质量）</option>
+            <option value="192">192 kbps（推荐）</option>
+            <option value="128">128 kbps（体积小）</option>
+            <option value="96">96 kbps（最小体积）</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary" id="convertBtn" disabled>🔄 开始转换</button>
+
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-inner" id="progressInner"></div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <button class="btn btn-success hide" id="downloadBtn">⬇️ 下载 MP3 文件</button>
+
+    <p class="note">
+        ⚡ 所有处理均在您的设备上完成<br>
+        文件不会离开您的手机或电脑
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lamejs-fixed@1.2.2/lame.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flac.js@1.0.0/flac.js"></script>
+
+<script>
+(function() {
+    var fileInput = document.getElementById('fileInput');
+    var fileArea = document.getElementById('fileArea');
+    var fileNameEl = document.getElementById('fileName');
+    var convertBtn = document.getElementById('convertBtn');
+    var downloadBtn = document.getElementById('downloadBtn');
+    var statusEl = document.getElementById('status');
+    var progressBar = document.getElementById('progressBar');
+    var progressInner = document.getElementById('progressInner');
+    var bitrateSelect = document.getElementById('bitrateSelect');
+
+    var currentFile = null;
+    var mp3Blob = null;
+    var mp3Name = '';
+    var busy = false;
+
+    function tip(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className = 'status show ' + (type || 'info');
+    }
+
+    function clearTip() {
+        statusEl.className = 'status';
+    }
+
+    function setProgress(n) {
+        progressBar.classList.add('show');
+        progressInner.style.width = Math.min(n, 100) + '%';
+    }
+
+    function resetProgress() {
+        progressBar.classList.remove('show');
+        progressInner.style.width = '0%';
+    }
+
+    function sizeText(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // float32 转 int16，lamejs 需要的是 int16
+    function toInt16(arr) {
+        var out = new Int16Array(arr.length);
+        for (var i = 0; i < arr.length; i++) {
+            var v = Math.max(-1, Math.min(1, arr[i]));
+            out[i] = v < 0 ? v * 0x8000 : v * 0x7FFF;
+        }
+        return out;
+    }
+
+    fileInput.addEventListener('change', function() {
+        var f = fileInput.files && fileInput.files[0];
+        if (!f) return;
+
+        if (!f.name.toLowerCase().endsWith('.flac')) {
+            tip('⚠️ 请选择 .flac 格式的文件', 'error');
+            fileInput.value = '';
+            fileArea.classList.remove('has-file');
+            fileNameEl.classList.add('hide');
+            convertBtn.disabled = true;
+            currentFile = null;
+            return;
+        }
+
+        currentFile = f;
+        fileArea.classList.add('has-file');
+        fileNameEl.textContent = f.name + '  (' + sizeText(f.size) + ')';
+        fileNameEl.classList.remove('hide');
+        convertBtn.disabled = false;
+        downloadBtn.classList.add('hide');
+        clearTip();
+        resetProgress();
+        mp3Blob = null;
+    });
+
+    convertBtn.addEventListener('click', function() {
+        if (!currentFile || busy) return;
+        doConvert(currentFile);
+    });
+
+    function doConvert(file) {
+        busy = true;
+        convertBtn.disabled = true;
+        convertBtn.innerHTML = '<span class="spinner"></span> 正在解码 FLAC...';
+        downloadBtn.classList.add('hide');
+        clearTip();
+        setProgress(5);
+
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            setProgress(15);
+
+            decodeFlac(e.target.result).then(function(audioBuf) {
+                setProgress(55);
+                convertBtn.innerHTML = '<span class="spinner"></span> 正在编码 MP3...';
+                return encodeMp3(audioBuf);
+            }).then(function(blob) {
+                mp3Blob = blob;
+                mp3Name = file.name.replace(/\.flac$/i, '') + '.mp3';
+
+                setProgress(100);
+                tip('✅ 转换完成！点击下方按钮下载 MP3 文件。', 'success');
+                downloadBtn.classList.remove('hide');
+                convertBtn.innerHTML = '🔄 重新转换';
+                convertBtn.disabled = false;
+                busy = false;
+                setTimeout(resetProgress, 1500);
+            }).catch(function(err) {
+                console.error(err);
+                tip('❌ 转换失败：' + (err.message || '未知错误') + '\n请确保文件是有效的 FLAC 格式。', 'error');
+                convertBtn.innerHTML = '🔄 重试';
+                convertBtn.disabled = false;
+                busy = false;
+                resetProgress();
+            });
+        };
+
+        reader.onerror = function() {
+            tip('❌ 文件读取失败，请重试。', 'error');
+            convertBtn.innerHTML = '🔄 重试';
+            convertBtn.disabled = false;
+            busy = false;
+            resetProgress();
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function decodeFlac(buf) {
+        return new Promise(function(resolve, reject) {
+            // flac.js 优先，没有就用浏览器原生解码兜底
+            if (typeof Flac === 'undefined' || !Flac.Decoder) {
+                if (window.AudioContext || window.webkitAudioContext) {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    ctx.decodeAudioData(buf.slice(0), function(ab) {
+                        ctx.close();
+                        resolve(ab);
+                    }, function() {
+                        ctx.close();
+                        reject(new Error('FLAC 解码失败，请检查文件是否完整。'));
+                    });
+                    return;
+                }
+                reject(new Error('解码器加载失败，请刷新页面重试。'));
+                return;
+            }
+
+            try {
+                var d = new Flac.Decoder();
+                d.decode(buf, function(pcm, rate, chs) {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var chArr, len;
+
+                    if (Array.isArray(pcm)) {
+                        chArr = pcm;
+                        len = pcm[0].length;
+                    } else if (pcm instanceof Float32Array) {
+                        chArr = [pcm];
+                        chs = 1;
+                        len = pcm.length;
+                    } else {
+                        ctx.close();
+                        reject(new Error('无法识别的 PCM 格式'));
+                        return;
+                    }
+
+                    var ab = ctx.createBuffer(chs, len, rate);
+                    for (var c = 0; c < chs; c++) {
+                        ab.getChannelData(c).set(chArr[c]);
+                    }
+                    ctx.close();
+                    resolve(ab);
+                });
+            } catch (e) {
+                // 有的版本 flac.js API 不一样，再试一次事件式的
+                try {
+                    var d2 = new Flac.Decoder();
+                    d2.on('data', function(pcm, meta) {
+                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        var chs = meta.channels || 1;
+                        var rate = meta.sampleRate || 44100;
+                        var len = pcm.length / chs;
+                        var ab = ctx.createBuffer(chs, len, rate);
+                        for (var c = 0; c < chs; c++) {
+                            var dst = ab.getChannelData(c);
+                            for (var i = 0; i < len; i++) {
+                                dst[i] = pcm[i * chs + c];
+                            }
+                        }
+                        ctx.close();
+                        resolve(ab);
+                    });
+                    d2.decode(buf);
+                } catch (e2) {
+                    if (window.AudioContext || window.webkitAudioContext) {
+                        var ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+                        ctx2.decodeAudioData(buf.slice(0), function(ab) {
+                            ctx2.close();
+                            resolve(ab);
+                        }, function() {
+                            ctx2.close();
+                            reject(new Error('FLAC 解码失败，建议用 Chrome 或 Edge 打开。'));
+                        });
+                    } else {
+                        reject(new Error('无法解码：' + e2.message));
+                    }
+                }
+            }
+        });
+    }
+
+    function encodeMp3(audioBuf) {
+        return new Promise(function(resolve, reject) {
+            try {
+                var chCount = Math.min(audioBuf.numberOfChannels, 2);
+                var rate = audioBuf.sampleRate;
+                var kbps = parseInt(bitrateSelect.value, 10) || 320;
+
+                var left = toInt16(audioBuf.getChannelData(0));
+                var right = chCount > 1 ? toInt16(audioBuf.getChannelData(1)) : null;
+
+                var enc = new lamejs.Mp3Encoder(chCount, rate, kbps);
+                var blockSize = 1152;
+                var chunks = [];
+                var total = left.length;
+
+                if (chCount === 1) {
+                    for (var i = 0; i < total; i += blockSize) {
+                        var chunk = enc.encodeBuffer(left.subarray(i, i + blockSize));
+                        if (chunk.length) chunks.push(new Int8Array(chunk));
+                    }
+                } else {
+                    for (var j = 0; j < total; j += blockSize) {
+                        var chunk2 = enc.encodeBuffer(
+                            left.subarray(j, j + blockSize),
+                            right.subarray(j, j + blockSize)
+                        );
+                        if (chunk2.length) chunks.push(new Int8Array(chunk2));
+                    }
+                }
+
+                var tail = enc.flush();
+                if (tail.length) chunks.push(new Int8Array(tail));
+
+                var blob = new Blob(chunks, { type: 'audio/mp3' });
+                if (!blob.size) {
+                    reject(new Error('编码结果为空'));
+                    return;
+                }
+                resolve(blob);
+            } catch (e) {
+                reject(new Error('MP3 编码出错：' + e.message));
+            }
+        });
+    }
+
+    downloadBtn.addEventListener('click', function() {
+        if (!mp3Blob || !mp3Name) return;
+
+        var url = URL.createObjectURL(mp3Blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = mp3Name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(function() {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 1000);
+
+        tip('📥 下载已开始，请到「下载」文件夹查看文件。', 'success');
+    });
+
+    // 部分手机上透明的 input 点击不灵，点整个区域触发一下
+    fileArea.addEventListener('click', function(e) {
+        if (e.target === fileInput) return;
+        fileInput.click();
+    });
+
+})();
+</script>
+</body>
+</html>
